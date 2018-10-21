@@ -1,184 +1,157 @@
 #pragma once
+#include <cassert>
+#include <iostream>
 
 class Matrix {
 
-private:
-  int m;
-  int n;
-  double *matrix = new double[0];
-
 public:
-  Matrix(std::size_t rows, std::size_t cols, double initValue) {
-    m = rows;
-    n = cols;
-    if (matrix != nullptr) {
-      std::cout << "I am not null!" << std::endl;
-      delete matrix;
-    }
+  size_t row; // rename to row!
+  size_t col; // rename to collums. lange aber deskriptive namen sind keine
+              // schande!
 
-    matrix = new double[m * n];
-
-    for (int i = 0; i < m * n; i++) {
-      matrix[i] = initValue;
+  double *data;
+  Matrix(std::size_t row, std::size_t col, double initValue)
+      : row(row), col(col), data(nullptr) {
+    data = new double[row * col];
+    for (size_t i = 0; i < row * col; i++) {
+      data[i] = initValue;
     }
   }
 
-  ~Matrix() {
+  // jedes objekt muss sich selbst aufräumen!
+  ~Matrix() { delete[] data; }
 
+  Matrix(const Matrix &other) : row(other.row), col(other.col), data(nullptr) {
 
-	  }
+    assert(other.row > 0);
+    assert(other.col > 0);
 
-  Matrix(const Matrix &mat) {
-    if (matrix != nullptr) {
-      delete matrix;
-      std::cout << "I am not null!" << std::endl;
-    }
-    assert(mat.m > 0);
-    assert(mat.n > 0);
-    m = mat.m;
-    n = mat.n;
-    // delete matrix;
-    matrix = new double[n * m];
-    for (int i = 0; i < m * n; i++) {
-      matrix[i] = mat.matrix[i];
+    data = new double[col * row];
+    for (size_t i = 0; i < row * col; i++) {
+      data[i] = other.data[i];
     }
   }
 
-  Matrix &operator=(const Matrix &mat) {
-    if (matrix != nullptr) {
-      std::cout << "I am not null!" << std::endl;
-      delete matrix;
+  void replace(const Matrix &other) {
+    delete[] data;
+    row = other.row;
+    col = other.col;
+    data = new double[col * row];
+
+    for (size_t i = 0; i < row * col; i++) {
+      data[i] = other.data[i];
     }
-    assert(mat.m > 0);
-    assert(mat.n > 0);
-    m = mat.m;
-    n = mat.n;
-    matrix = new double[n * m];
-    for (int i = 0; i < m * n; i++) {
-      matrix[i] = mat.matrix[i];
-    };
+  }
+
+  // other ist quasi standard für derartige funktionen
+  Matrix &operator=(const Matrix &other) {
+    assert(other.row > 0);
+    assert(other.col > 0);
+    replace(other);
     return *this;
   }
 
-  double &operator()(std::size_t i, std::size_t j) {
-    assert(i >= 0 && i < m);
-    assert(j >= 0 && j < n);
-    return matrix[i * n + j];
+  // diese funktion ist nur mit vorsicht zu verwenden
+  double &getReference(const std::size_t i, const std::size_t j) {
+    assert(i >= 0 && i < row);
+    assert(j >= 0 && j < col);
+    return data[i * col + j];
+  }
+
+  const double &operator()(std::size_t i, std::size_t j) {
+    // den operator() sollte man nie überladen, verwirrt meistens nur
+    // besser: .at(i,j) oder getData(i,j)
+    assert(i >= 0 && i < row);
+    assert(j >= 0 && j < col);
+    return data[i * row + j];
   }
 
   const double &operator()(std::size_t i, std::size_t j) const {
-    assert(i >= 0 && i < m);
-    assert(j >= 0 && j < n);
-    const double ret = matrix[i * m + j];
-    return ret;
+    assert(i >= 0 && i < row);
+    assert(j >= 0 && j < col);
+    const double val = data[i * row + j];
+    return val;
   }
 
-  bool operator==(const Matrix &mat) const {
-    if (mat.m != m || mat.n != n)
+  bool operator==(const Matrix &other) const {
+    if (other.row != row || other.col != col)
       return false;
     else {
-      for (int i = 0; i < m * n; i++) {
-        if (mat.matrix[i] != matrix[i])
+      for (size_t i = 0; i < row * col; i++) {
+        if (other.data[i] != data[i])
           return false;
       }
     }
     return true;
   }
 
-  bool operator!=(const Matrix &mat) const {
-    if (mat.m != m || mat.n != n)
-      return true;
-    else {
-      for (int i = 0; i < m * n; i++) {
-        if (mat.matrix[i] != matrix[i])
-          return true;
-      }
+  bool operator!=(const Matrix &other) const {
+    // immer schön refactorisieren
+    return !(*this == other);
+  }
+
+  Matrix operator+(const Matrix &other) const {
+    assert(this->col == other.col);
+    assert(this->row == other.row);
+    Matrix result(row, col, 0);
+    for (size_t i = 0; i < col * row; i++) {
+      result.data[i] = this->data[i] + other.data[i];
     }
-    return false;
+    return result;
   }
 
-  Matrix &operator+=(const Matrix &mat) {
-    assert(mat.m == m);
-    assert(mat.n == n);
-    for (int i = 0; i < m * n; i++) {
-      matrix[i] += mat.matrix[i];
+  Matrix operator-(const Matrix &other) const {
+    assert(this->col == other.col);
+    assert(this->row == other.row);
+    Matrix result(row, col, 0);
+    for (size_t i = 0; i < col * row; i++) {
+      result.data[i] = this->data[i] - other.data[i];
     }
-    return *this;
-  }
-
-  Matrix operator+(const Matrix &mat) const {
-    Matrix a = Matrix(*this);
-    a += mat;
-    *matrix = *a.matrix;
-    delete a.matrix;
-    return *this;
-  }
-
-  Matrix &operator-=(const Matrix &mat) {
-    assert(mat.m == m);
-    assert(mat.n == n);
-    for (int i = 0; i < m * n; i++) {
-      matrix[i] -= mat.matrix[i];
-    }
-    return *this;
-  }
-
-  Matrix operator-(const Matrix &mat) const {
-
-    Matrix a = Matrix(*this);
-    a -= mat;
-    delete matrix;
-    *matrix = *a.matrix;
-    return *this;
-  }
-
-  Matrix &operator*=(const Matrix &mat) {
-    assert(mat.m == n);
-    Matrix pm = Matrix(m, mat.n, 0);
-    for (int i = 0; i < pm.n * pm.n; i++) {
-      int lr = i / pm.m;
-      int rc = i / mat.n;
-      for (int j = 0; j < n; j++) {
-        pm.matrix[i] += matrix[lr * n + j] * mat.matrix[rc * m + j];
-      }
-    }
-    matrix = pm.matrix;
-    m = pm.m;
-    n = pm.n;
-    delete pm.matrix;
-    return *this;
+    return result;
   }
 
   Matrix operator*(const Matrix &mat) const {
-    assert(mat.m == n);
-    Matrix a = Matrix(*this);
-    a *= mat;
-    *matrix = *a.matrix;
-    return a;
-
-    /*Matrix pm = Matrix(m, mat.n, 0);
-    for (int i = 0; i < pm.n * pm.n; i++) {
-      int lr = i / pm.m;
-      int rc = i / mat.n;
-      for (int j = 0; j < n; j++) {
-            pm.matrix[i] += matrix[lr * n + j] * mat.matrix[rc * m + j];
+    // uff mach das selber
+    Matrix pm = Matrix(row, mat.col, 0);
+    for (int i = 0; i < pm.row * pm.col; i++) {
+      int lr = i / pm.row;
+      int rc = i / mat.col;
+      for (int j = 0; j < col; j++) {
+        pm.data[i] += data[lr * col + j] * mat.data[rc * row + j];
       }
     }
     return pm;
-*/
   }
 
-  std::size_t rows() const { return m; }
-  std::size_t cols() const { return n; }
+  Matrix &operator+=(const Matrix &other) {
+    Matrix tmp = *this + other;
+    this->replace(tmp);
+    return *this;
+  }
 
-  friend std::ostream &operator<<(std::ostream &output, const Matrix &mat) {
-    for (int i = 0; i < mat.m * mat.n; i++) {
-      output << mat.matrix[i] << "\t";
-      if (i % mat.m == 0)
+  Matrix &operator-=(const Matrix &other) {
+    Matrix tmp = *this - other;
+    this->replace(tmp);
+    return *this;
+  }
+
+  Matrix &operator*=(const Matrix &other) {
+    Matrix tmp = *this * other;
+    this->replace(tmp);
+    return *this;
+  }
+
+  std::size_t rows() const { return row; }
+  std::size_t cols() const { return col; }
+
+  friend std::ostream &operator<<(std::ostream &output, const Matrix &matrix) {
+    for (int i = 0; i < matrix.row * matrix.col; i++) {
+      output << matrix.data[i] << "\t";
+      if (i % matrix.row == 0)
         output << std::endl;
     }
     return output;
   }
 
-  friend std::istream &operator>>(std::istream &is, Matrix &mat) { return is; };
+  friend std::istream &operator>>(std::istream &is, Matrix &mat) { return is; }
 };
