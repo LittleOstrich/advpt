@@ -11,8 +11,7 @@ message("${VLD_H}")
 message("${VLD}")
 message("Enabling Visual Leak Detector Done")
 
-#add_compile_options(-DMATRIX_DEBUG)
+add_compile_options(-DMATRIX_DEBUG)
 add_executable(MatrixTest MatrixTest.cpp)
-#target_link_libraries(MatrixTest "${VLD}")
-#add_executable(MatrixProduct Matrix.h MatrixProduct.cpp)
+# add_executable(MatrixProduct Matrix.h MatrixProduct.cpp)
 

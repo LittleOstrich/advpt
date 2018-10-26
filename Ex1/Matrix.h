@@ -1,13 +1,15 @@
 #pragma once
 #include <cassert>
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 class Matrix {
 
 public:
-  size_t row; // rename to row!
-  size_t col; // rename to collums. lange aber deskriptive namen sind keine
-              // schande!
+  size_t row;
+  size_t col;
 
   double *data;
   Matrix(std::size_t row, std::size_t col, double initValue)
@@ -18,7 +20,6 @@ public:
     }
   }
 
-  // jedes objekt muss sich selbst aufräumen!
   ~Matrix() { delete[] data; }
 
   Matrix(const Matrix &other) : row(other.row), col(other.col), data(nullptr) {
@@ -43,7 +44,6 @@ public:
     }
   }
 
-  // other ist quasi standard für derartige funktionen
   Matrix &operator=(const Matrix &other) {
     assert(other.row > 0);
     assert(other.col > 0);
@@ -51,16 +51,13 @@ public:
     return *this;
   }
 
-  // diese funktion ist nur mit vorsicht zu verwenden
   double &getReference(const std::size_t i, const std::size_t j) {
     assert(i >= 0 && i < row);
     assert(j >= 0 && j < col);
     return data[i * col + j];
   }
 
-  const double &operator()(std::size_t i, std::size_t j) {
-    // den operator() sollte man nie überladen, verwirrt meistens nur
-    // besser: .at(i,j) oder getData(i,j)
+  double &operator()(std::size_t i, std::size_t j) {
     assert(i >= 0 && i < row);
     assert(j >= 0 && j < col);
     return data[i * row + j];
@@ -85,10 +82,7 @@ public:
     return true;
   }
 
-  bool operator!=(const Matrix &other) const {
-    // immer schön refactorisieren
-    return !(*this == other);
-  }
+  bool operator!=(const Matrix &other) const { return !(*this == other); }
 
   Matrix operator+(const Matrix &other) const {
     assert(this->col == other.col);
@@ -111,9 +105,8 @@ public:
   }
 
   Matrix operator*(const Matrix &mat) const {
-    // uff mach das selber
     Matrix pm = Matrix(row, mat.col, 0);
-    for (int i = 0; i < pm.row * pm.col; i++) {
+    for (size_t i = 0; i < pm.row * pm.col; i++) {
       int lr = i / pm.row;
       int rc = i / mat.col;
       for (int j = 0; j < col; j++) {
@@ -147,11 +140,98 @@ public:
   friend std::ostream &operator<<(std::ostream &output, const Matrix &matrix) {
     for (int i = 0; i < matrix.row * matrix.col; i++) {
       output << matrix.data[i] << "\t";
-      if (i % matrix.row == 0)
+      if ((i + 1) % matrix.col == 0)
         output << std::endl;
     }
     return output;
   }
 
-  friend std::istream &operator>>(std::istream &is, Matrix &mat) { return is; }
+  friend std::istream &operator>>(std::istream &is, Matrix &other) {
+
+    std::string s(std::istreambuf_iterator<char>(is), {});
+    int slen = s.length();
+    int count_changes = 0;
+    int cc = -1; // col counter
+    int rc = 0;   // row counter
+    int tnoe = 0; // total number of elements
+    int start = 0;
+    int end = 0;
+
+    for (int i = 0; i < slen; i++) {
+      if (s.at(i) == '\n') {
+        rc++;
+        start = end;
+        end = i + 1;
+        std::string t = s.substr(start, end - start);
+        std::istringstream iss(t);
+        double z;
+        int temp_cc = 0;
+
+        while (iss >> z) {
+          temp_cc++;
+          tnoe++;
+        }
+        if (cc == -1)
+          cc = temp_cc;
+        else
+          assert(temp_cc == cc);
+      }
+    }
+
+    start = end;
+    end = slen;
+    std::string t = s.substr(start, end - start);
+    std::istringstream iss(t);
+    double z;
+    int temp_cc = 0;
+
+    // collect the elements of the last row
+    while (iss >> z) {
+      temp_cc++;
+      tnoe++;
+    }
+    if (cc != -1 && t.length() > 0)
+      assert(temp_cc == cc);
+
+    std::istringstream fs(s); // stream containing all elements
+    delete other.data;
+    other.data = new double[tnoe];
+    other.row = rc;
+    other.col = cc;
+    for (int i = 0; i < tnoe; i++)
+      fs >> other.data[i];
+    return is;
+    /*int r = 0;
+    int elems = 0;
+    int c;
+    std::string intBuffer;
+
+            is.
+    int slen = s.length;
+    for (int i = 0; i < slen, i++) {
+          if (s.at(i) == "\n")
+            r++;
+          else if ((s.at(i) == "\t" || s.at(i) == ' ') && intBuffer.length > 0)
+  { intBuffer = ""; elems++; } else if (isDigit(s.at(i))) { continue; } else {
+            assert(false);
+          }
+    }
+    assert((elems + 1) % r == 0);
+    delete other.data;
+    other.data = new double[elems + 1];
+    other.row = r;
+    other.col = (elems + 1) / r;
+
+    int pos = 0;
+    for (int i = 0; i < slen; i++) {
+          if (isDigit(s.at(i))) {
+            intBuffer += std::string(s.at(i));
+          } else if (s.at(i) == "\t" || s.at(i) == ' ' && intBuffer.length > 0)
+  { other.data[pos] = double(intBuffer);
+          }
+    }
+
+    return is;
+  }*/
+  }
 };
