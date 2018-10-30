@@ -64,6 +64,7 @@ void test_get_set(size_t rows = 2, size_t cols = 4, double initValue = 1.0) {
   auto begin = &m2(0, 0);
   auto end = &m2(rows - 1, cols - 1) + 1;
   size_t diff = end - begin;
+  std::cout << &m2(rows - 1, cols - 1) << std::endl;
   assert("1D memory layout check" && (diff == rows * cols));
   assert("row wise order check" && (&m2(0, 1) - &m2(0, 0) == 1));
   assert("row wise order check" && (size_t(&m2(1, 0) - &m2(0, 0)) == cols));
@@ -219,14 +220,30 @@ void test_input_output_self_consistency(size_t row = 2, size_t col = 4) {
   // std::cout<<m2(1, 2)<<std::endl;
 }
 
+void matrix_test() {
+  std::filebuf fb;
+  std::string path =
+      "C:\\Users\\Benjamin\\Desktop\\LainProject\\C++\\Advpt\\Ex1\\testcases\\";
+  std::string f1 = "Square.input.txt";
+  std::string f2 = "NonSquareRandom.input.txt";
+  std::string f3 = "BigMatrix.input.txt";
+  path = path + f3;
+  fb.open(path, std::ios::in);
+  std::istream is(&fb);
+
+  Matrix m = Matrix(2, 2, 0);
+  is >> m;
+}
+
 int main() {
   _CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
   // test_get_set();
   // test_memory();
-  test_compare();
-  test_arithmetic();
-  test_input_output_self_consistency();
+  // test_compare();
+  // test_arithmetic();
+  // test_input_output_self_consistency();
   // test_out_put();
+  matrix_test();
   std::cout << "all tests finished without assertion errors" << std::endl;
   system("pause");
   return 0;

@@ -15,9 +15,8 @@ public:
   Matrix(std::size_t row, std::size_t col, double initValue)
       : row(row), col(col), data(nullptr) {
     data = new double[row * col];
-    for (size_t i = 0; i < row * col; i++) {
+    for (size_t i = 0; i < row * col; i++)
       data[i] = initValue;
-    }
   }
 
   ~Matrix() { delete[] data; }
@@ -28,9 +27,8 @@ public:
     assert(other.col > 0);
 
     data = new double[col * row];
-    for (size_t i = 0; i < row * col; i++) {
+    for (size_t i = 0; i < row * col; i++)
       data[i] = other.data[i];
-    }
   }
 
   void replace(const Matrix &other) {
@@ -39,9 +37,8 @@ public:
     col = other.col;
     data = new double[col * row];
 
-    for (size_t i = 0; i < row * col; i++) {
+    for (size_t i = 0; i < row * col; i++)
       data[i] = other.data[i];
-    }
   }
 
   Matrix &operator=(const Matrix &other) {
@@ -60,13 +57,14 @@ public:
   double &operator()(std::size_t i, std::size_t j) {
     assert(i >= 0 && i < row);
     assert(j >= 0 && j < col);
-    return data[i * row + j];
+    return data[i * col + j];
   }
 
   const double &operator()(std::size_t i, std::size_t j) const {
     assert(i >= 0 && i < row);
     assert(j >= 0 && j < col);
-    const double val = data[i * row + j];
+    const double val = data[i * col + j];
+    // std::cout <<i*row+j<< std::endl;
     return val;
   }
 
@@ -107,10 +105,15 @@ public:
   Matrix operator*(const Matrix &mat) const {
     Matrix pm = Matrix(row, mat.col, 0);
     for (size_t i = 0; i < pm.row * pm.col; i++) {
-      int lr = i / pm.row;
-      int rc = i / mat.col;
-      for (int j = 0; j < col; j++) {
-        pm.data[i] += data[lr * col + j] * mat.data[rc * row + j];
+      int lr = i / pm.col;
+      int rc = i % pm.col;
+      for (size_t j = 0; j < col; j++) {
+        int li = lr * col + j;
+        int ri = j * mat.col + rc;
+        /*std::cout << li << " " << ri << std::endl;
+        std::cout << data[li] << " " << mat.data[ri] << std::endl;
+        std::cout << "----------" << std::endl;*/
+        pm.data[i] += data[li] * mat.data[ri];
       }
     }
     return pm;
@@ -146,12 +149,49 @@ public:
     return output;
   }
 
+  friend std::istream &operator>>(std::istream &iss, Matrix &other) {
+    int s1 = 0;
+    int s2 = 0;
+    int s3 = 0;
+    std::string s(std::istreambuf_iterator<char>(iss), {});
+    std::istringstream is(s);
+    double z = 0;
+    is >> s1;
+    if (!s1)
+      assert(false);
+    is >> s2;
+    if (!s2)
+      assert(false);
+    is >> s3;
+    if (!s3)
+      assert(false);
+
+    Matrix a(s1, s2, 0);
+    Matrix b(s2, s3, 0);
+
+    for (int i = 0; i < s1 * s2; i++) {
+      is >> a.data[i];
+      if (!a.data[i] && a.data[i] != 0)
+        assert(false);
+    }
+
+    for (int i = 0; i < s2 * s3; i++) {
+      is >> b.data[i];
+      if (!b.data[i] && b.data[i] != 0)
+        assert(false);
+    }
+
+    other = a * b;
+    return is;
+  }
+
+  /*
   friend std::istream &operator>>(std::istream &is, Matrix &other) {
 
     std::string s(std::istreambuf_iterator<char>(is), {});
     int slen = s.length();
     int count_changes = 0;
-    int cc = -1; // col counter
+    int cc = -1;  // col counter
     int rc = 0;   // row counter
     int tnoe = 0; // total number of elements
     int start = 0;
@@ -159,14 +199,17 @@ public:
 
     for (int i = 0; i < slen; i++) {
       if (s.at(i) == '\n') {
-        rc++;
-        start = end;
-        end = i + 1;
+        rc++; // we encountered the end of the line
+
+        // prepare string to be extracted
+        start = end;     // start index of our row in string form
+        end = i + 1;     // last index of our row in string form
+        int temp_cc = 0; // used for checking, if all "cols" are of same length
+        double z;        // dump for doubles
+
+        // create a substring and abuse, that std::istringstream parses double
         std::string t = s.substr(start, end - start);
         std::istringstream iss(t);
-        double z;
-        int temp_cc = 0;
-
         while (iss >> z) {
           temp_cc++;
           tnoe++;
@@ -178,6 +221,7 @@ public:
       }
     }
 
+    // create a substring and abuse, that std::istringstream parses double
     start = end;
     end = slen;
     std::string t = s.substr(start, end - start);
@@ -201,37 +245,6 @@ public:
     for (int i = 0; i < tnoe; i++)
       fs >> other.data[i];
     return is;
-    /*int r = 0;
-    int elems = 0;
-    int c;
-    std::string intBuffer;
-
-            is.
-    int slen = s.length;
-    for (int i = 0; i < slen, i++) {
-          if (s.at(i) == "\n")
-            r++;
-          else if ((s.at(i) == "\t" || s.at(i) == ' ') && intBuffer.length > 0)
-  { intBuffer = ""; elems++; } else if (isDigit(s.at(i))) { continue; } else {
-            assert(false);
-          }
-    }
-    assert((elems + 1) % r == 0);
-    delete other.data;
-    other.data = new double[elems + 1];
-    other.row = r;
-    other.col = (elems + 1) / r;
-
-    int pos = 0;
-    for (int i = 0; i < slen; i++) {
-          if (isDigit(s.at(i))) {
-            intBuffer += std::string(s.at(i));
-          } else if (s.at(i) == "\t" || s.at(i) == ' ' && intBuffer.length > 0)
-  { other.data[pos] = double(intBuffer);
-          }
-    }
-
-    return is;
-  }*/
   }
+*/
 };
