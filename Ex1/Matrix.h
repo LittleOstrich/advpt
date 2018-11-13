@@ -64,7 +64,6 @@ public:
     assert(i >= 0 && i < row);
     assert(j >= 0 && j < col);
     const double val = data[i * col + j];
-    // std::cout <<i*row+j<< std::endl;
     return val;
   }
 
@@ -110,9 +109,6 @@ public:
       for (size_t j = 0; j < col; j++) {
         int li = lr * col + j;
         int ri = j * mat.col + rc;
-        /*std::cout << li << " " << ri << std::endl;
-        std::cout << data[li] << " " << mat.data[ri] << std::endl;
-        std::cout << "----------" << std::endl;*/
         pm.data[i] += data[li] * mat.data[ri];
       }
     }
@@ -155,7 +151,6 @@ public:
     int s3 = 0;
     std::string s(std::istreambuf_iterator<char>(iss), {});
     std::istringstream is(s);
-    double z = 0;
     is >> s1;
     if (!s1)
       assert(false);
