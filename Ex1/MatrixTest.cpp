@@ -206,6 +206,7 @@ void test_input_output_self_consistency(size_t row = 2, size_t col = 4) {
       m1(i, j) = (j * 100 + i) / 9.0;
     }
   }
+  // std::cout << m1 << std::endl;
   std::stringstream ss;
   ss << m1;
   ss >> m2;
@@ -232,14 +233,13 @@ void matrix_test() {
 
 int main() {
   _CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
-  // test_get_set();
-  // test_memory();
-  // test_compare();
-  // test_arithmetic();
-  // test_input_output_self_consistency();
+  test_get_set();
+  test_memory();
+  test_compare();
+  test_arithmetic();
+  test_input_output_self_consistency();
   // test_out_put();
-  matrix_test();
+  // matrix_test();
   std::cout << "all tests finished without assertion errors" << std::endl;
-  system("pause");
   return 0;
 }

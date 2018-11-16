@@ -145,101 +145,91 @@ public:
     return output;
   }
 
+  //  friend std::istream &operator>>(std::istream &iss, Matrix &other) {
+  //    int s1 = -1;
+  //    int s2 = -1;
+  //    int s3 = -1;
+  //    std::string s(std::istreambuf_iterator<char>(iss), {});
+  //    std::istringstream is(s);
+
+  //    while ()
+
+  //      //    is >> s1;
+  //      //    if (!s1 || s1 == 0)
+  //      //      assert(true);
+  //      //    is >> s2;
+  //      //    if (!s2 || s2 == 0)
+  //      //      assert(true);
+  //      //    is >> s3;
+  //      //    if (!s3 || s3 == 0)
+  //      //      assert(true);
+
+  //      Matrix a(s1, s2, 0);
+  //    Matrix b(s2, s3, 0);
+
+  //    for (int i = 0; i < s1 * s2; i++) {
+  //      is >> a.data[i];
+  //      if (!a.data[i] && a.data[i] != 0)
+  //        assert(false);
+  //    }
+
+  //    for (int i = 0; i < s2 * s3; i++) {
+  //      is >> b.data[i];
+  //      if (!b.data[i] && b.data[i] != 0)
+  //        assert(false);
+  //    }
+
+  //    other = a * b;
+  //    return is;
+  //  }
+
   friend std::istream &operator>>(std::istream &iss, Matrix &other) {
-    int s1 = 0;
-    int s2 = 0;
-    int s3 = 0;
     std::string s(std::istreambuf_iterator<char>(iss), {});
     std::istringstream is(s);
-    is >> s1;
-    if (!s1)
-      assert(false);
-    is >> s2;
-    if (!s2)
-      assert(false);
-    is >> s3;
-    if (!s3)
-      assert(false);
 
-    Matrix a(s1, s2, 0);
-    Matrix b(s2, s3, 0);
-
-    for (int i = 0; i < s1 * s2; i++) {
-      is >> a.data[i];
-      if (!a.data[i] && a.data[i] != 0)
-        assert(false);
+    double z = -1;
+    size_t num_entries = 0;
+    size_t num_rows = 0;
+    size_t string_length = s.length();
+    while (is >> z) {
+      std::cout << z << std::endl;
+      num_entries++;
     }
 
-    for (int i = 0; i < s2 * s3; i++) {
-      is >> b.data[i];
-      if (!b.data[i] && b.data[i] != 0)
-        assert(false);
+    std::istringstream is2(s);
+    size_t pos = 0;
+    while (pos < string_length) {
+      if (s.at(pos) == '\n')
+        num_rows++;
+      pos++;
     }
+    assert(num_rows != 0);
+    int temp_cols = num_entries / num_rows;
+    assert(temp_cols * num_rows == num_entries);
 
-    other = a * b;
-    return is;
-  }
-
-  /*
-  friend std::istream &operator>>(std::istream &is, Matrix &other) {
-
-    std::string s(std::istreambuf_iterator<char>(is), {});
-    int slen = s.length();
-    int count_changes = 0;
-    int cc = -1;  // col counter
-    int rc = 0;   // row counter
-    int tnoe = 0; // total number of elements
+    std::istringstream is3(s);
+    std::string substring = "";
     int start = 0;
-    int end = 0;
-
-    for (int i = 0; i < slen; i++) {
-      if (s.at(i) == '\n') {
-        rc++; // we encountered the end of the line
-
-        // prepare string to be extracted
-        start = end;     // start index of our row in string form
-        end = i + 1;     // last index of our row in string form
-        int temp_cc = 0; // used for checking, if all "cols" are of same length
-        double z;        // dump for doubles
-
-        // create a substring and abuse, that std::istringstream parses double
-        std::string t = s.substr(start, end - start);
-        std::istringstream iss(t);
-        while (iss >> z) {
-          temp_cc++;
-          tnoe++;
-        }
-        if (cc == -1)
-          cc = temp_cc;
-        else
-          assert(temp_cc == cc);
+    int end = s.find("\n");
+    std::string first_half = s.substr(0, end);
+    std::string second_half = s.substr(end, string_length);
+    size_t data_pos = 0;
+    other = Matrix(num_rows, temp_cols, 0);
+    while (true) {
+      std::istringstream temp_stream(first_half);
+      while (temp_stream >> other.data[data_pos]) {
+        data_pos++;
       }
+      if (data_pos == num_entries) {
+        break;
+      }
+      assert(data_pos % num_rows == 0);
+      first_half = second_half;
+      start = end;
+      end = second_half.find("\n");
+      second_half = s.substr(start, string_length);
     }
-
-    // create a substring and abuse, that std::istringstream parses double
-    start = end;
-    end = slen;
-    std::string t = s.substr(start, end - start);
-    std::istringstream iss(t);
-    double z;
-    int temp_cc = 0;
-
-    // collect the elements of the last row
-    while (iss >> z) {
-      temp_cc++;
-      tnoe++;
-    }
-    if (cc != -1 && t.length() > 0)
-      assert(temp_cc == cc);
-
-    std::istringstream fs(s); // stream containing all elements
-    delete other.data;
-    other.data = new double[tnoe];
-    other.row = rc;
-    other.col = cc;
-    for (int i = 0; i < tnoe; i++)
-      fs >> other.data[i];
+    std::cout << other << std::endl;
     return is;
   }
-*/
 };
