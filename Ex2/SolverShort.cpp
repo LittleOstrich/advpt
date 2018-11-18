@@ -1,15 +1,4 @@
-#include <iostream>
-
-#include <algorithm>
-#include <chrono>
-#include <functional>
-#include <list>
-#include <random>
-
-#include "Matrix.h"
-#include "Stencil.h"
-#include "Vector.h"
-
+#include "solvershort.h"
 #define PI 3.141592653589793
 
 // util hx expressions
@@ -157,7 +146,7 @@ template <size_t... testcases> void runTests(std::list<int> &expected) {
 }
 
 // actual main
-int solvershort_main() {
+void solvershort_main() {
   std::list<int> expected{743, 1676};
   runTestsImpl<33, 49>(expected);
 }

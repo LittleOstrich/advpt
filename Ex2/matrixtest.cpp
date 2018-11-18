@@ -36,7 +36,7 @@ bool almostEqual(const Matrix<double, a_rows, a_cols> &a,
   }
   return true;
 }
-void test_get_set(double initValue = 1.0) {
+void test_get_set(double initValue) {
   TESTCASE("test_get_set");
   constexpr size_t rows = 2;
   constexpr size_t cols = 4;
@@ -65,7 +65,7 @@ void test_get_set(double initValue = 1.0) {
   assert("row wise order check" && (size_t(&m2(1, 0) - &m2(0, 0)) == cols));
 }
 
-void test_memory(double initValue = 1.0) {
+void test_memory(double initValue) {
   TESTCASE("test_memory");
   constexpr size_t rows = 2;
   constexpr size_t cols = 4;
@@ -88,7 +88,7 @@ void test_memory(double initValue = 1.0) {
   assert("self assignment check" && almostEqual(m4, m4copy, 0));
 }
 
-void test_compare(double v = 1.0) {
+void test_compare(double v) {
   TESTCASE("test_compare");
   constexpr size_t rows = 2;
   constexpr size_t cols = 4;
@@ -197,7 +197,7 @@ void test_input_output_self_consistency() {
   assert("check output and input operator" && almostEqual(m1, m2, 1e-4));
 }
 
-int matrixt_test_main() {
+void matrixt_test_main() {
   test_get_set();
   test_memory();
   test_compare();

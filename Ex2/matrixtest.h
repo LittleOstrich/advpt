@@ -17,9 +17,9 @@ void matrixt_test_main();
 void test_arithmetic();
 void test_input_output_self_consistency();
 
-void matrix_test1();
-void matrix_test2();
-void matrix_test3();
-void matrix_test4();
-void matrix_test5();
-void matrix_test6();
+// void matrix_test1();
+// void matrix_test2();
+// void matrix_test3();
+// void matrix_test4();
+// void matrix_test5();
+// void matrix_test6();

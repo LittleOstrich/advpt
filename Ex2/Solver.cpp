@@ -1,15 +1,12 @@
-#include <iostream>
-
-#include "Matrix.h"
-#include "Stencil.h"
-#include "Vector.h"
+#include "solver.h"
 
 #define PI 3.141592653589793
 
-template <typename T>
-void solve(const Matrix<T> &A, const Vector<T> &b, Vector<T> &u) {
+template <typename T, class Derived, size_t numPoints>
+// void solve (const Matrix<T>& A, const Vector<T>& b, Vector<T>& u) {
+void solve(const MatrixLike<T, Derived, numPoints, numPoints> &A,
+           const Vector<T, numPoints> &b, Vector<T, numPoints> &u) {
   const size_t numGridPoints = u.size();
-
   double initRes = (b - A * u).l2Norm(); // determine the initial residual
   double curRes = initRes;
   std::cout << "Initial residual:\t\t" << initRes << std::endl;
@@ -37,44 +34,98 @@ void solve(const Matrix<T> &A, const Vector<T> &b, Vector<T> &u) {
                           // residual
 }
 
-void testFullMatrix(const int numGridPoints) {
-  const double hx = 1. / (numGridPoints - 1);
+template <size_t numPoints> void testFullMatrix(/*const int numGridPoints*/) {
+  // const double hx = 1. / (numGridPoints - 1);
+  const double hx = 1. / (numPoints - 1);
   const double hxSq = hx * hx;
+  std::chrono::time_point<std::chrono::system_clock> start,
+      end; // timer start, end
 
-  std::cout << "Starting full matrix solver for " << numGridPoints
-            << " grid points" << std::endl;
+  std::cout << "Starting full matrix solver for " << numPoints << " grid points"
+            << std::endl;
 
-  Matrix<double> A(numGridPoints, numGridPoints, 0.);
-  Vector<double> u(numGridPoints, 0.);
-  Vector<double> b(numGridPoints, 0.);
+  Matrix<double, numPoints, numPoints> A(0.);
+  Vector<double, numPoints> u(numPoints, 0.);
+  // Vector<double> b(numGridPoints, 0.);
+  // use std::function to construct b
+  Vector<double, numPoints> b(numPoints, [](int length) {
+    double *p = new double[length];
+    for (int x = 0; x < length; ++x) {
+      p[x] = sin(2. * PI * (x / (double)(length - 1)));
+    }
+    return p;
+  });
 
   A(0, 0) = 1.;
-  for (int x = 1; x < numGridPoints - 1; ++x) {
+  for (int x = 1; x < numPoints - 1; ++x) {
     A(x, x - 1) = 1. / hxSq;
     A(x, x) = -2. / hxSq;
     A(x, x + 1) = 1. / hxSq;
   }
-  A(numGridPoints - 1, numGridPoints - 1) = 1.;
+  A(numPoints - 1, numPoints - 1) = 1.;
 
-  for (int x = 0; x < numGridPoints; ++x) {
-    b(x) = sin(2. * PI * (x / (double)(numGridPoints - 1)));
+  // for (int x = 0; x < numGridPoints; ++x) {
+  //	b(x) = sin(2. * PI * (x / (double)(numGridPoints - 1)));
+  //}
+
+  std::cout << "Initialization complete\n";
+  // cout << A << endl;
+  // TODO: start timing
+  start = std::chrono::system_clock::now();
+  solve(A, b, u);
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsedTime = end - start;
+  std::cout << "elapsed time: " << elapsedTime.count() << "s" << std::endl;
+  // TODO: end timing and print elapsed time
+  // for primitive methods: size:  17  || 33   || 65    || 129
+  //					iteration:	146  || 594  || 2386  ||
+  // 9553 					time:		0.016|| 0.19
+  //|| 2.48  || 38.31  s  Question 1: why elapsed time differs in every run?
+
+  // for improved #1:		  size:  17  || 33   || 65    || 129
+  //					iteration:	146  || 594  || 2386  ||
+  // 9553 					time:		0.016|| 0.09 ||
+  // 0.53  || 3.79   s
+}
+
+template <size_t numPoints> void testStencil(/*const int numGridPoints*/) {
+  // TODO: add stencil code
+  // the stencil can be set up using
+  const double hx = 1. / (numPoints - 1);
+  const double hxSq = hx * hx;
+  std::chrono::time_point<std::chrono::system_clock> start,
+      end; // timer start, end
+
+  std::cout << "Starting full matrix solver for " << numPoints
+            << " grid points, using Stencil" << std::endl;
+
+  Stencil<double, numPoints, numPoints> ASten(
+      {{0, 1.}}, {{-1, 1. / hxSq}, {0, -2. / hxSq}, {1, 1. / hxSq}});
+  Vector<double, numPoints> u(numPoints, 0.);
+  Vector<double, numPoints> b(numPoints, 0.);
+
+  ASten.setSize(numPoints);
+  for (int x = 0; x < numPoints; ++x) {
+    b(x) = sin(2. * PI * (x / (double)(numPoints - 1)));
   }
 
   std::cout << "Initialization complete\n";
-
-  // TODO: start timing
-  solve(A, b, u);
-  // TODO: end timing and print elapsed time
-}
-
-void testStencil(const int numGridPoints) {
-  // TODO: add stencil code
-  // the stencil can be set up using
-  //		Stencil<double> ASten({ { 0, 1. } }, { { -1, 1. / hxSq },{ 0, -2. /
-  //hxSq },{ 1, 1. / hxSq } });
+  start = std::chrono::system_clock::now();
+  solve(ASten, b, u);
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsedTime = end - start;
+  std::cout << "elapsed time: " << elapsedTime.count() << "s" << std::endl;
 }
 
 int main(int argc, char **argv) {
-  testFullMatrix(32);
-  testStencil(32);
+  // testFullMatrix<17>();
+  testStencil<17>();
+  // testFullMatrix<33>();
+  testStencil<33>();
+  // testFullMatrix<65>();
+  testStencil<65>();
+  // testFullMatrix<129>();
+  testStencil<129>();
+
+  return 0;
 }

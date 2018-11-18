@@ -58,6 +58,15 @@ public:
       data[i] = T(t);
     }
   }
+
+  //  template <typename, size_t new_row>
+  //  Vector<T, L>(T t, size_t new_row) : row(new_row) {
+  //    data = new T[r];
+  //    for (size_t i = 0; i < row; i++) {
+  //      data[i] = T(t);
+  //    }
+  //  }
+
   template <typename, size_t new_row>
   Vector<T, r>(const Vector<T, new_row> &other) : row(new_row) {
     data = new T[row];
