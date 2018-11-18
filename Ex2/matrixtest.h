@@ -1,3 +1,4 @@
+#pragma once
 #include "Matrix.h"
 #include "Vector.h"
 #include <algorithm>
@@ -11,6 +12,7 @@
 void test_get_set(double initValue = 1.0);
 void test_memory(double initValue = 1.0);
 void test_compare(double v = 1.0);
+void matrixt_test_main();
 
 void test_arithmetic();
 void test_input_output_self_consistency();

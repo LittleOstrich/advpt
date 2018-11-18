@@ -1,8 +1,5 @@
 #pragma once
 
-// forward declarations
-template <typename T> class Vector;
-
 template <typename T, class Derived, size_t r, size_t c> class MatrixLike {
 public:
   /// c'tor/ d'tor
