@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Vector.h"
 #include <algorithm> // std::find_if
 #include <cassert>
 #include <utility> //std::swap
+#include <vector>
 
 #include "MatrixLike.h"
 
@@ -40,8 +40,6 @@ public:
   const T &operator()(int, int) const override;
 
   Stencil<T, rows, cols> inverseDiagonal() const override;
-
-  void setSize(int);
 
 protected:
   // containers for the stencil entries -> boundary stencils represent the first
@@ -100,11 +98,11 @@ T &Stencil<T, rows, cols>::operator()(int row, int col) {
 template <typename T, size_t rows, size_t cols>
 Vector<T, rows> Stencil<T, rows, cols>::
 operator*(const Vector<T, rows> &rhs) const {
-  // assert(size_==rhs.length_);
+  // assert(size_==rhs.size());
   Vector<T, rows> res(0.);
-  res.p_[0] = rhs.p_[0] * boundaryStencil_[0].second;
-  res.p_[rhs.length_ - 1] =
-      rhs.p_[rhs.length_ - 1] * boundaryStencil_[0].second;
+  res.data[0] = rhs.data[0] * boundaryStencil_[0].second;
+  res.data[rhs.size() - 1] =
+      rhs.data[rhs.size() - 1] * boundaryStencil_[0].second;
   auto inner0 =
       std::find_if(innerStencil_.begin(), innerStencil_.end(),
                    [](const StencilEntry<T> &p) { return p.first == -1; });
@@ -114,9 +112,10 @@ operator*(const Vector<T, rows> &rhs) const {
   auto inner2 =
       std::find_if(innerStencil_.begin(), innerStencil_.end(),
                    [](const StencilEntry<T> &p) { return p.first == 1; });
-  for (int i = 1; i < rhs.length_ - 1; i++) {
-    res.p_[i] = rhs.p_[i - 1] * inner0->second + rhs.p_[i] * inner1->second +
-                rhs.p_[i + 1] * inner2->second;
+  for (int i = 1; i < rhs.size() - 1; i++) {
+    res.data[i] = rhs.data[i - 1] * inner0->second +
+                  rhs.data[i] * inner1->second +
+                  rhs.data[i + 1] * inner2->second;
   }
   return res;
 }

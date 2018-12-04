@@ -1,11 +1,38 @@
 #pragma once
 #include "Matrix.h"
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
 
+
+
+/*
+template<typename T, size_t nRows>
+class Vector : public Matrix<T,  nRows, 1>
+{
+public:
+
+    // normalerweilse wird automatisch der default konstrutor der base klasse aufgerufn
+    // es sei denn es wird expliziert anders definiert
+    Vector(T value) : Matrix<T, nRows, 1>(value) {};
+
+    Vector(const Matrix<T, nRows,1>& other) : Matrix<T, nRows,1>(){
+        this->data = other->data;
+    }
+
+    T &operator()(size_t i) {
+      assert(i >= 0 && i < nRows);
+      return this->data[i];
+    }
+
+    T &operator()(size_t i) const {
+        assert(i >= 0 && i < nRows);
+        return this->data[i];
+      }
+};*/
+
+/*
+template<typename T, size_t rows_>
+using Vector = Matrix<T, rows_, 1>;*/
+
+/* unnötig! vectoren sind doch einfach nur matrizen mit col = 1 und fertig
 template <typename T, size_t r> class Vector : public Matrix<T, r, 1> {
 
 public:
@@ -225,3 +252,4 @@ public:
     return is;
   }
 };
+*/
